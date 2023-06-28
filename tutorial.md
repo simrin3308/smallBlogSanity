@@ -89,3 +89,126 @@ export default function Themebutton() {
 
 5. Import ThemeButton in the navbar.
 <!-- DONE -->
+
+# Sanity Io
+
+1. npm create sanity@latest -- --template clean --create-project "Sanity Project" --dataset production
+
+2. sanity folder will be created.
+3. Add the schema in the schema in new file in schema folder.
+4. Go to the sanity folder and start server.
+5. For demo create 2 posts.
+6. Now we need to get the posts. For that we need to create clients.
+7. npm i next-sanity
+8. Create file sanity.ts in app/lib/sanity.ts
+9. Create a client =>
+
+```js
+import { createClient } from "next-sanity";
+
+const projectId = "c1qwa3ql";
+
+const dataset = "production";
+
+const apiVersion = "2023-01-01";
+
+export const client = createClient({
+  projectId,
+  dataset,
+  apiVersion,
+  useCdn: true,
+});
+```
+
+10. Create function for getting the data.
+
+```js
+async function getData() {
+  // to get all the posts
+  const query = `*[_type=='post']`;
+
+  const data = await client.fetch(query);
+
+  return data;
+}
+```
+
+11.
+
+```js
+const data = (await getData()) as Post[];
+```
+
+"as post" means we created a file in interface, that tells the type of the values in the data
+
+12. Map the data folder.
+
+Now if we click on the post, postDetails should get opened.
+
+13. Create a link tag on the post with slug.
+
+```js
+// put it in map method.
+  <Link
+    href={`/post/${post.slug.current}`}
+    prefetch
+    className="space-y-3 xl:col-span-3"
+    >
+```
+
+14. create a folder =>
+
+app/post/[slug]/page.tsx
+
+15. Get the params in page.tsx.
+
+```js
+export default async function SlugPage({
+  params,
+}: {
+  params: { slug: string },
+}) {}
+```
+
+16. npm i @portabletext/react
+
+```js
+<PortableText value={data.content} components={PortableTextComponent} />
+```
+
+17. To make images work
+
+- npm i @sanity/image-url
+
+- Create a file in libs
+
+app/libs/sanityImageUrl.ts
+
+```js
+import ImageUrlBuilder from "@sanity/image-url";
+import { client } from "./sanity";
+
+const builder = ImageUrlBuilder(client);
+
+export function urlFor(source: any) {
+  return builder.image(source);
+}
+```
+
+- Create a function
+
+```js
+const PortableTextComponent = {
+  types: {
+    image: ({ value }: { value: any }) => (
+      <Image
+        src="{urlFor(value).url()}"
+        alt="Image"
+        className="rounded-lg"
+        width={800}
+        height={800}
+      />
+    ),
+  },
+};
+```
